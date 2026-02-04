@@ -1,158 +1,240 @@
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BNB Chain : Masterclass Professionnelle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- Palette: Onyx, Or & Platine -->
     <!-- Structure: 10 Sections pour une présentation rythmée -->
 
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
     <style>
+        :root {
+            --bnb-yellow: #F3BA2F;
+            --bnb-gold: #F0B90B;
+            --bg-dark: #0B0E11;
+            --panel-bg: rgba(24, 28, 32, 0.7);
+            --text-primary: #EAECEF;
+            --text-secondary: #929AA5;
+            --transition-slow: 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0B0E11;
-            color: #EAECEF;
-            overflow-x: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
         }
 
         .presentation-container {
             scroll-snap-type: y mandatory;
             height: 100vh;
-            overflow-y: auto;
+            overflow-y: scroll;
+            scroll-behavior: smooth;
+        }
+
+        .presentation-container::-webkit-scrollbar {
+            display: none;
         }
 
         .slide {
             height: 100vh;
+            width: 100%;
             scroll-snap-align: start;
+            scroll-snap-stop: always;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 2rem;
+            padding: 4rem;
             position: relative;
+            box-sizing: border-box;
         }
 
         .glass-panel {
-            background: rgba(24, 28, 32, 0.6);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.4s ease, border-color 0.4s ease;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(243, 186, 47, 0.3);
+            transform: translateY(-5px);
         }
 
         .gold-glow {
-            box-shadow: 0 0 30px rgba(240, 185, 11, 0.15);
+            box-shadow: 0 0 40px rgba(240, 185, 11, 0.1);
         }
 
         .text-gradient-gold {
-            background: linear-gradient(135deg, #F3BA2F 0%, #F0B90B 100%);
+            background: linear-gradient(135deg, var(--bnb-yellow) 0%, var(--bnb-gold) 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .chart-container {
             position: relative;
             width: 100%;
-            height: 350px;
+            height: 300px;
         }
 
-        /* Animation des barres de stats */
-        @keyframes grow { from { width: 0; } to { width: 100%; } }
-        .stat-bar { animation: grow 1.5s ease-out; }
+        .animate-on-visible {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all var(--transition-slow);
+        }
 
-        /* Scrollbar masquée pour effet PPT */
-        .presentation-container::-webkit-scrollbar { width: 0; }
+        .slide.active .animate-on-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 {
+            transition-delay: 0.2s;
+        }
+
+        .delay-2 {
+            transition-delay: 0.4s;
+        }
+
+        .delay-3 {
+            transition-delay: 0.6s;
+        }
+
+        .token-card {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s ease;
+        }
 
         .token-card:hover {
-            transform: translateY(-5px);
-            border-color: #F0B90B;
-            background: rgba(240, 185, 11, 0.05);
+            background: rgba(243, 186, 47, 0.08);
+            border-color: var(--bnb-gold);
+            transform: scale(1.02);
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: var(--bnb-gold);
+            transform: scale(1.5);
+            box-shadow: 0 0 10px var(--bnb-gold);
+        }
+
+        .badge {
+            background: rgba(243, 186, 47, 0.1);
+            color: var(--bnb-yellow);
+            border: 1px solid rgba(243, 186, 47, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
     </style>
 </head>
+
 <body class="antialiased">
 
     <!-- Progress Tracker (Top) -->
     <div class="fixed top-0 left-0 w-full h-1.5 z-50 bg-gray-900">
-        <div id="progressBar" class="h-full bg-gradient-to-right from-yellow-600 to-yellow-400 w-0 transition-all duration-300"></div>
+        <div id="progressBar"
+            class="h-full bg-gradient-to-right from-yellow-600 to-yellow-400 w-0 transition-all duration-300"></div>
     </div>
 
     <!-- Side Navigation -->
-    <div class="fixed left-8 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col space-y-6">
-        <div class="group flex items-center">
-            <div class="w-2 h-2 rounded-full bg-yellow-500 mr-4"></div>
-            <span class="text-[10px] uppercase tracking-widest text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">01 Intro</span>
-        </div>
-        <div class="group flex items-center">
-            <div class="w-2 h-2 rounded-full bg-gray-700 mr-4"></div>
-            <span class="text-[10px] uppercase tracking-widest text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">02 Usage</span>
-        </div>
-        <div class="group flex items-center">
-            <div class="w-2 h-2 rounded-full bg-gray-700 mr-4"></div>
-            <span class="text-[10px] uppercase tracking-widest text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">03 Tech</span>
-        </div>
-        <div class="group flex items-center">
-            <div class="w-2 h-2 rounded-full bg-gray-700 mr-4"></div>
-            <span class="text-[10px] uppercase tracking-widest text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">04 Défis</span>
-        </div>
+    <div class="fixed right-8 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col space-y-4">
+        <div class="nav-dot active" data-slide="0"></div>
+        <div class="nav-dot" data-slide="1"></div>
+        <div class="nav-dot" data-slide="2"></div>
+        <div class="nav-dot" data-slide="3"></div>
+        <div class="nav-dot" data-slide="4"></div>
+        <div class="nav-dot" data-slide="5"></div>
+        <div class="nav-dot" data-slide="6"></div>
+        <div class="nav-dot" data-slide="7"></div>
+        <div class="nav-dot" data-slide="8"></div>
     </div>
 
     <div class="presentation-container" id="scrollContainer">
 
-        <!-- SLIDE 1: HERO & VISION -->
-        <section class="slide items-center text-center">
+        <!-- SLIDE 1: HERO -->
+        <section class="slide items-center text-center active" id="slide1">
             <div class="absolute inset-0 z-0">
-                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-500/10 rounded-full blur-[120px]"></div>
-            </div>
-            
-            <div class="z-10 space-y-8 animate-fade-in">
-                <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-yellow-500 uppercase tracking-[0.3em]">
-                    <span>Infrastructure de Troisième Génération</span>
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-yellow-500/10 rounded-full blur-[120px]">
                 </div>
+            </div>
+
+            <div class="z-10 space-y-8 animate-on-visible">
+                <div class="badge">Masterclass Blockchain Professionnelle</div>
                 <h1 class="text-7xl md:text-9xl font-black tracking-tighter leading-none">
                     BNB <br><span class="text-gradient-gold">CHAIN</span>
                 </h1>
                 <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light leading-relaxed">
-                    Comprendre l'écosystème blockchain le plus efficace pour les transactions professionnelles à haute fréquence.
+                    L'infrastructure blockchain optimisée pour la finance décentralisée et les applications
+                    professionnelles à haute performance.
                 </p>
-                <div class="pt-8">
-                    <p class="text-xs text-gray-600 uppercase tracking-widest mb-4">Utilisez le scroll pour naviguer</p>
-                    <div class="w-6 h-10 border-2 border-gray-700 rounded-full mx-auto relative">
-                        <div class="w-1 h-2 bg-yellow-500 rounded-full absolute left-1/2 -translate-x-1/2 top-2 animate-bounce"></div>
+                <div class="pt-12">
+                    <p class="text-[10px] text-gray-600 uppercase tracking-[0.4em] mb-4">Utilisez le scroll pour
+                        naviguer</p>
+                    <div class="w-6 h-10 border-2 border-gray-800 rounded-full mx-auto relative">
+                        <div
+                            class="w-1 h-2 bg-yellow-500 rounded-full absolute left-1/2 -translate-x-1/2 top-2 animate-bounce">
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 2: LE CONCEPT -->
-        <section class="slide">
+        <!-- SLIDE 2: FICHE TECHNIQUE 1 - NOM & DESCRIPTION -->
+        <section class="slide" id="slide2">
             <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-16 items-center">
-                <div class="space-y-8">
-                    <h2 class="text-5xl font-extrabold leading-tight">L'Évolution du <br><span class="text-yellow-500">Binance Coin.</span></h2>
+                <div class="space-y-8 animate-on-visible">
+                    <h2 class="text-5xl font-extrabold leading-tight">Identité du <br><span
+                            class="text-yellow-500">Réseau.</span></h2>
                     <div class="space-y-6 text-gray-400 text-lg">
-                        <p>Initialement un simple jeton de réduction sur l'échange Binance, le BNB est devenu la pièce maîtresse d'une blockchain <span class="text-white font-bold">indépendante</span> et <span class="text-white font-bold">communautaire</span>.</p>
-                        <p>La BNB Chain combine deux couches : une pour la gouvernance et le staking (Beacon) et une pour les Smart Contracts (BSC).</p>
+                        <p><span class="text-white font-bold">Nom :</span> BNB Chain (anciennement Binance Smart Chain).
+                        </p>
+                        <p><span class="text-white font-bold">Cryptomonnaie :</span> BNB (Binance Coin).</p>
+                        <p>Lancée en 2020 pour offrir une alternative rapide et peu coûteuse à Ethereum, tout en
+                            maintenant une compatibilité totale avec ses outils (EVM).</p>
                     </div>
                 </div>
-                <div class="relative">
+                <div class="relative animate-on-visible delay-1">
                     <div class="glass-panel p-10 gold-glow">
                         <div class="space-y-6">
                             <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                                <span class="text-gray-500 font-mono">ID RÉSEAU</span>
-                                <span class="font-bold text-white">56 (Mainnet)</span>
+                                <span class="text-gray-500 font-mono">CRÉATION</span>
+                                <span class="font-bold text-white">Septembre 2020</span>
                             </div>
                             <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                                <span class="text-gray-500 font-mono">LANGAGE</span>
-                                <span class="font-bold text-white">Solidity / EVM</span>
+                                <span class="text-gray-500 font-mono">SYMBOLE</span>
+                                <span class="font-bold text-yellow-500">BNB</span>
+                            </div>
+                            <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span class="text-gray-500 font-mono">UNITÉS</span>
+                                <span class="font-bold text-white">18 Décimales</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-gray-500 font-mono">CAPITALISATION</span>
-                                <span class="font-bold text-yellow-500">Top 3 Mondial</span>
+                                <span class="text-gray-500 font-mono">ÉCOSYSTÈME</span>
+                                <span class="font-bold text-white">EVM Compatible</span>
                             </div>
                         </div>
                     </div>
@@ -160,231 +242,240 @@
             </div>
         </section>
 
-        <!-- SLIDE 3: LE PROBLÈME (BANQUE) -->
-        <section class="slide bg-gray-900/20">
+        <!-- SLIDE 3: CAS D'USAGE PROFESSIONNEL -->
+        <section class="slide bg-gray-900/10" id="slide3">
             <div class="max-w-6xl mx-auto w-full">
-                <div class="text-center mb-16">
-                    <h2 class="text-4xl font-bold mb-4">Le Goulot d'Étranglement Bancaire</h2>
-                    <p class="text-gray-500">Pourquoi le système actuel freine la croissance des entreprises.</p>
+                <div class="text-center mb-16 animate-on-visible">
+                    <div class="badge mb-4">Étude de Cas</div>
+                    <h2 class="text-5xl font-bold">Paiements B2B Internationaux</h2>
+                    <p class="text-gray-400 mt-4 max-w-3xl mx-auto text-lg italic">"Comment les entreprises utilisent la
+                        BNB Chain pour contourner la lenteur bancaire traditionnelle."</p>
                 </div>
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="p-8 glass-panel border-red-500/20">
-                        <div class="text-3xl mb-4">⏱️</div>
-                        <h4 class="text-xl font-bold mb-4">Lenteur SWIFT</h4>
-                        <p class="text-sm text-gray-500">2 à 5 jours ouvrés pour un transfert international. Incompatible avec le commerce en temps réel.</p>
-                    </div>
-                    <div class="p-8 glass-panel border-red-500/20">
-                        <div class="text-3xl mb-4">💸</div>
-                        <h4 class="text-xl font-bold mb-4">Frais Opaques</h4>
-                        <p class="text-sm text-gray-500">Frais fixes élevés ($20-50) + commissions de change cachées. Désastreux pour les petits volumes.</p>
-                    </div>
-                    <div class="p-8 glass-panel border-red-500/20">
-                        <div class="text-3xl mb-4">🔒</div>
-                        <h4 class="text-xl font-bold mb-4">Bureautique</h4>
-                        <p class="text-sm text-gray-500">Contrôles manuels, erreurs de saisie et risques de blocage arbitraire des fonds.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 4: LA SOLUTION (SIMULATEUR) -->
-        <section class="slide">
-            <div class="max-w-6xl mx-auto w-full grid lg:grid-cols-2 gap-12 items-center">
-                <div class="space-y-8">
-                    <h2 class="text-4xl font-bold">Simulateur d'Efficacité</h2>
-                    <p class="text-gray-400 leading-relaxed">Ajustez le montant pour visualiser l'avantage concurrentiel de la BNB Chain sur un virement professionnel.</p>
-                    
-                    <div class="glass-panel p-8 space-y-6">
-                        <div>
-                            <div class="flex justify-between mb-4">
-                                <span class="text-sm font-bold text-gray-500">MONTANT DU TRANSFERT</span>
-                                <span id="amtDisplay" class="text-2xl font-black text-white">5 000 $</span>
-                            </div>
-                            <input type="range" min="1000" max="250000" step="1000" value="5000" id="amtInput" class="w-full h-1.5 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-yellow-500" oninput="updateSim()">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-6 animate-on-visible delay-1">
+                        <h3 class="text-2xl font-bold text-yellow-500">Le Contexte</h3>
+                        <p class="text-gray-400 leading-relaxed">
+                            Une entreprise de logistique en Asie doit payer ses fournisseurs en Europe. Le système SWIFT
+                            classique prend 3 à 5 jours et coûte cher en frais fixes et commissions de change.
+                        </p>
+                        <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <p class="text-sm text-gray-300 font-medium">L'entreprise utilise désormais des <span
+                                    class="text-yellow-500">Stablecoins (USDT/USDC)</span> sur la BNB Chain pour régler
+                                ses factures instantanément.</p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-red-500/5 p-4 rounded-xl border border-red-500/20">
-                                <p class="text-[10px] text-red-500 font-bold mb-1">FRAIS BANQUE</p>
-                                <p id="bankFee" class="text-xl font-bold">45.00 $</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-6 animate-on-visible delay-2">
+                        <div class="glass-panel p-6 flex items-start space-x-4">
+                            <div class="text-2xl">⚡</div>
+                            <div>
+                                <h4 class="font-bold">Instantanéité</h4>
+                                <p class="text-sm text-gray-500">Règlement final validé en moins de 10 secondes.</p>
                             </div>
-                            <div class="bg-yellow-500/5 p-4 rounded-xl border border-yellow-500/20">
-                                <p class="text-[10px] text-yellow-500 font-bold mb-1">FRAIS BNB CHAIN</p>
-                                <p id="bnbFee" class="text-xl font-bold">0.08 $</p>
+                        </div>
+                        <div class="glass-panel p-6 flex items-start space-x-4">
+                            <div class="text-2xl">📉</div>
+                            <div>
+                                <h4 class="font-bold">Coûts Réduits</h4>
+                                <p class="text-sm text-gray-500">Frais inférieurs à 0.10 $ quel que soit le montant
+                                    envoyé.</p>
+                            </div>
+                        </div>
+                        <div class="glass-panel p-6 flex items-start space-x-4">
+                            <div class="text-2xl">🔍</div>
+                            <div>
+                                <h4 class="font-bold">Traçabilité</h4>
+                                <p class="text-sm text-gray-500">Preuve cryptographique immuable du virement sur
+                                    l'explorateur.</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="glass-panel p-8">
-                    <div class="chart-container">
-                        <canvas id="compChart"></canvas>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <!-- SLIDE 5: ÉCOSYSTÈME & TOKENS -->
-        <section class="slide">
-            <div class="max-w-6xl mx-auto w-full text-center mb-16">
-                <h2 class="text-4xl font-bold mb-4">Les Standards de <span class="text-yellow-500">Jetons</span></h2>
-                <p class="text-gray-500">Trois piliers pour représenter n'importe quel actif financier.</p>
-            </div>
-            <div class="max-w-6xl mx-auto w-full grid md:grid-cols-3 gap-8">
-                <!-- BEP-20 -->
-                <div class="p-8 glass-panel token-card transition-all duration-300">
-                    <div class="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">💰</div>
-                    <h4 class="text-xl font-bold mb-2">BEP-20</h4>
-                    <p class="text-xs text-yellow-500 font-mono mb-4">Standard Fongible</p>
-                    <p class="text-sm text-gray-500">Utilisé pour les Stablecoins (USDT, USDC) et les monnaies d'entreprises. Identique à l'ERC-20.</p>
-                </div>
-                <!-- BEP-721 -->
-                <div class="p-8 glass-panel token-card transition-all duration-300">
-                    <div class="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">🖼️</div>
-                    <h4 class="text-xl font-bold mb-2">BEP-721</h4>
-                    <p class="text-xs text-purple-400 font-mono mb-4">Non-Fongible (NFT)</p>
-                    <p class="text-sm text-gray-500">Pour la propriété intellectuelle, les certificats d'authenticité et l'immobilier fractionné.</p>
-                </div>
-                <!-- BEP-1155 -->
-                <div class="p-8 glass-panel token-card transition-all duration-300">
-                    <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">📦</div>
-                    <h4 class="text-xl font-bold mb-2">BEP-1155</h4>
-                    <p class="text-xs text-blue-400 font-mono mb-4">Standard Hybride</p>
-                    <p class="text-sm text-gray-500">Permet la gestion de collections mixtes d'actifs dans un seul contrat (logistique, inventaire).</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SLIDE 6: ARCHITECTURE PoSA -->
-        <section class="slide bg-black/40">
+        <!-- SLIDE 4: DÉFINITION TECHNIQUE - CONSENSUS -->
+        <section class="slide" id="slide4">
             <div class="max-w-6xl mx-auto w-full grid md:grid-cols-2 gap-16 items-center">
-                <div class="space-y-12">
-                    <h2 class="text-4xl font-bold">Le Moteur : <br><span class="text-yellow-500">PoSA Consensus</span></h2>
+                <div class="space-y-12 animate-on-visible">
+                    <div class="badge">Architecture & Consensus</div>
+                    <h2 class="text-4xl font-bold">Le Moteur : <br><span class="text-yellow-500">Proof of Staked
+                            Authority (PoSA)</span></h2>
                     <div class="space-y-8">
                         <div class="flex space-x-6">
                             <div class="text-2xl font-black text-gray-800">01</div>
-                            <p class="text-gray-400 text-sm">Les détenteurs de BNB délèguent leurs jetons à des <span class="text-white font-bold">Validateurs</span>.</p>
+                            <p class="text-gray-400 text-sm">Hybride entre <span class="text-white font-bold">Proof of
+                                    Stake (PoS)</span> et <span class="text-white font-bold">Proof of Authority
+                                    (PoA)</span>.</p>
                         </div>
                         <div class="flex space-x-6">
                             <div class="text-2xl font-black text-gray-800">02</div>
-                            <p class="text-gray-400 text-sm">Un groupe restreint de validateurs (élus) produit des blocs toutes les <span class="text-white font-bold">3 secondes</span>.</p>
+                            <p class="text-gray-400 text-sm">Les validateurs sont élus par staking (BNB) mais limités en
+                                nombre pour garantir la vitesse.</p>
                         </div>
                         <div class="flex space-x-6">
                             <div class="text-2xl font-black text-gray-800">03</div>
-                            <p class="text-gray-400 text-sm">Ce mélange de "Preuve d'Enjeu" et "d'Autorité" garantit une <span class="text-yellow-500 font-bold">finalité ultra-rapide</span>.</p>
+                            <p class="text-gray-400 text-sm">Actuellement <span class="text-yellow-500 font-bold">41
+                                    validateurs actifs</span> gèrent la production des blocs.</p>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-center">
-                    <!-- Abstract Tech Diagram with CSS -->
+                <div class="flex justify-center animate-on-visible delay-1">
                     <div class="w-80 h-80 relative flex items-center justify-center">
-                        <div class="absolute inset-0 border-[10px] border-yellow-500/20 rounded-full animate-pulse"></div>
-                        <div class="absolute inset-10 border-4 border-yellow-500/40 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                        <div class="absolute inset-0 border-[10px] border-yellow-500/20 rounded-full animate-pulse">
+                        </div>
+                        <div
+                            class="absolute inset-10 border-4 border-yellow-500/40 rounded-full animate-[spin_15s_linear_infinite]">
+                        </div>
                         <div class="absolute inset-20 border border-gray-700 rounded-full"></div>
                         <div class="text-center z-10">
-                            <div class="text-4xl font-black text-white">41</div>
-                            <div class="text-[10px] text-yellow-500 uppercase font-bold tracking-widest">Validateurs</div>
+                            <div class="text-5xl font-black text-white">PoSA</div>
+                            <div class="text-[10px] text-yellow-500 uppercase font-bold tracking-widest mt-2">
+                                Architecture Hybride</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 7: PERFORMANCE INDUSTRIELLE -->
-        <section class="slide">
-            <div class="max-w-6xl mx-auto w-full text-center mb-12">
+        <!-- SLIDE 5: SPÉCIFICATIONS TECHNIQUES -->
+        <section class="slide bg-black/40" id="slide5">
+            <div class="max-w-6xl mx-auto w-full text-center mb-12 animate-on-visible">
                 <h2 class="text-4xl font-bold">Spécifications <span class="text-yellow-500">Hard-Tech</span></h2>
+                <p class="text-gray-500 mt-4">Les chiffres qui font de BNB Chain un leader en performance.</p>
             </div>
-            <div class="max-w-4xl mx-auto w-full space-y-4">
+            <div class="max-w-4xl mx-auto w-full space-y-4 animate-on-visible delay-1">
                 <div class="p-6 glass-panel flex justify-between items-center group overflow-hidden relative">
-                    <div class="absolute left-0 top-0 h-full bg-yellow-500/10 w-0 group-hover:w-full transition-all duration-500"></div>
-                    <span class="font-mono text-gray-500">CAPACITÉ DE BLOC (GAS)</span>
-                    <span class="text-2xl font-black text-white z-10">140 000 000</span>
+                    <span class="font-mono text-gray-500">TEMPS DE BLOC (BLOCK TIME)</span>
+                    <span class="text-2xl font-black text-white z-10">~ 3.0 Secondes</span>
                 </div>
                 <div class="p-6 glass-panel flex justify-between items-center group overflow-hidden relative">
-                    <div class="absolute left-0 top-0 h-full bg-yellow-500/10 w-0 group-hover:w-full transition-all duration-500"></div>
+                    <span class="font-mono text-gray-500">TAILLE DES BLOCS (GAS LIMIT)</span>
+                    <span class="text-2xl font-black text-white z-10">140 000 000 Gas</span>
+                </div>
+                <div class="p-6 glass-panel flex justify-between items-center group overflow-hidden relative">
                     <span class="font-mono text-gray-500">DÉBIT RÉEL (TPS)</span>
-                    <span class="text-2xl font-black text-white z-10">2 200+ tx/s</span>
+                    <span class="text-2xl font-black text-white z-10">2 200+ Transactions/s</span>
                 </div>
                 <div class="p-6 glass-panel flex justify-between items-center group overflow-hidden relative">
-                    <div class="absolute left-0 top-0 h-full bg-yellow-500/10 w-0 group-hover:w-full transition-all duration-500"></div>
-                    <span class="font-mono text-gray-500">FRÉQUENCE DE BLOC</span>
-                    <span class="text-2xl font-black text-white z-10">~ 3.0 s</span>
+                    <span class="font-mono text-gray-500">COÛT MOYEN TRANSACTION</span>
+                    <span class="text-2xl font-black text-yellow-500 z-10">&lt; 0.08 $</span>
                 </div>
-                <div class="p-6 glass-panel flex justify-between items-center group overflow-hidden relative">
-                    <div class="absolute left-0 top-0 h-full bg-yellow-500/10 w-0 group-hover:w-full transition-all duration-500"></div>
-                    <span class="font-mono text-gray-500">COÛT DE TRANSACTION</span>
-                    <span class="text-2xl font-black text-yellow-500 z-10">&lt; 0.10 $</span>
+            </div>
+            <div class="mt-12 text-center animate-on-visible delay-2">
+                <p class="text-xs text-gray-600 font-mono">*Données basées sur les moyennes du Mainnet en 2024</p>
+            </div>
+        </section>
+
+        <!-- SLIDE 6: AVANTAGES RÉSEAU -->
+        <section class="slide" id="slide6">
+            <div class="max-w-6xl mx-auto w-full text-center mb-16 animate-on-visible">
+                <h2 class="text-4xl font-bold mb-4">Pourquoi choisir <span class="text-yellow-500">BNB Chain</span> ?
+                </h2>
+                <p class="text-gray-500">Les avantages compétitifs clés pour l'entreprise.</p>
+            </div>
+            <div class="max-w-6xl mx-auto w-full grid md:grid-cols-3 gap-8 animate-on-visible delay-1">
+                <div class="p-8 glass-panel token-card">
+                    <div class="w-16 h-16 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+                        🚀</div>
+                    <h4 class="text-xl font-bold mb-2">Scalabilité</h4>
+                    <p class="text-sm text-gray-500">Conçue pour gérer des millions d'utilisateurs quotidiens sans
+                        congestion majeure.</p>
+                </div>
+                <div class="p-8 glass-panel token-card">
+                    <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">🛠️
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Interopérabilité</h4>
+                    <p class="text-sm text-gray-500">Migration facile depuis Ethereum grâce à la compatibilité Solidity
+                        et aux Bridges.</p>
+                </div>
+                <div class="p-8 glass-panel token-card">
+                    <div class="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-3xl mb-6">🌿
+                    </div>
+                    <h4 class="text-xl font-bold mb-2">Éco-responsable</h4>
+                    <p class="text-sm text-gray-500">Le PoSA consomme 99% d'énergie en moins que le Proof of Work
+                        (Bitcoin).</p>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 8: DÉFIS ET LIMITES -->
-        <section class="slide">
+        <!-- SLIDE 7: DÉFIS ET LIMITES -->
+        <section class="slide" id="slide7">
             <div class="max-w-6xl mx-auto w-full">
-                <h2 class="text-4xl font-bold mb-12 text-center text-red-500">Les Points de Vigilance</h2>
-                <div class="grid md:grid-cols-2 gap-8">
+                <div class="text-center mb-16 animate-on-visible">
+                    <div class="badge border-red-500/20 text-red-500 bg-red-500/5">Challenges</div>
+                    <h2 class="text-4xl font-bold mt-4">Les Points de Vigilance</h2>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 animate-on-visible delay-1">
                     <div class="p-10 glass-panel border-l-4 border-red-500">
-                        <h4 class="text-xl font-bold mb-4">Décentralisation Relative</h4>
-                        <p class="text-gray-500 text-sm leading-relaxed">Avec seulement 41 validateurs, le réseau est plus sensible à la censure ou aux pannes coordonnées que Bitcoin ou Ethereum (milliers de nœuds).</p>
+                        <h4 class="text-xl font-bold mb-4">Centralisation</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Avec seulement 41 validateurs, le réseau est
+                            plus sensible à la censure ou aux pannes coordonnées qu'Ethereum.</p>
                     </div>
                     <div class="p-10 glass-panel border-l-4 border-orange-500">
-                        <h4 class="text-xl font-bold mb-4">Vitesse vs État (State Bloat)</h4>
-                        <p class="text-gray-500 text-sm leading-relaxed">La production ultra-rapide de blocs génère une quantité massive de données. Cela rend le fonctionnement d'un nœud complet coûteux pour les particuliers.</p>
+                        <h4 class="text-xl font-bold mb-4">Stockage (State Bloat)</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">La vitesse génère des To de données on-chain,
+                            rendant le maintien d'un nœud complexe et coûteux.</p>
                     </div>
                     <div class="p-10 glass-panel border-l-4 border-yellow-500">
-                        <h4 class="text-xl font-bold mb-4">Dépendance Écosystème</h4>
-                        <p class="text-gray-500 text-sm leading-relaxed">Malgré sa décentralisation progressive, la chaîne reste fortement liée à l'image et au succès de l'échange Binance.</p>
+                        <h4 class="text-xl font-bold mb-4">Sécurité des Ponts</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Historiquement, les ponts reliant BNB Chain à
+                            d'autres réseaux ont été la cible d'attaques majeures (ex: Token Hub hack).</p>
                     </div>
                     <div class="p-10 glass-panel border-l-4 border-blue-500">
-                        <h4 class="text-xl font-bold mb-4">Concurrence L2</h4>
-                        <p class="text-gray-500 text-sm leading-relaxed">L'émergence des Layer 2 sur Ethereum (Base, Optimism) réduit l'avantage compétitif des frais de la BNB Chain.</p>
+                        <h4 class="text-xl font-bold mb-4">Dépendance Binance</h4>
+                        <p class="text-gray-500 text-sm leading-relaxed">Malgré sa gouvernance propre, l'image de la
+                            chaîne reste liée au plus gros échange mondial.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 9: SOURCES -->
-        <section class="slide bg-black/60">
+        <!-- SLIDE 8: SOURCES -->
+        <section class="slide bg-black/60" id="slide8">
             <div class="max-w-4xl mx-auto w-full">
-                <h2 class="text-3xl font-bold mb-10 text-center uppercase tracking-[0.4em] text-gray-500">Références & Sources</h2>
-                <div class="space-y-6">
-                    <a href="https://docs.bnbchain.org" class="block p-6 glass-panel hover:bg-white/5 transition-colors">
+                <h2
+                    class="text-3xl font-bold mb-10 text-center uppercase tracking-[0.4em] text-gray-500 animate-on-visible">
+                    Références & Sources</h2>
+                <div class="space-y-6 animate-on-visible delay-1">
+                    <a href="https://docs.bnbchain.org"
+                        class="block p-6 glass-panel hover:bg-white/5 transition-colors">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold">Documentation Technique Officielle</span>
+                            <span class="font-bold">BNB Chain Documentation</span>
                             <span class="text-yellow-500 text-xs font-mono">docs.bnbchain.org</span>
                         </div>
                     </a>
-                    <a href="https://academy.binance.com/fr" class="block p-6 glass-panel hover:bg-white/5 transition-colors">
+                    <a href="https://bscscan.com" class="block p-6 glass-panel hover:bg-white/5 transition-colors">
                         <div class="flex justify-between items-center">
-                            <span class="font-bold">Binance Academy - Analyse PoSA</span>
+                            <span class="font-bold">Explorateur On-Chain - BSCScan</span>
+                            <span class="text-yellow-500 text-xs font-mono">bscscan.com</span>
+                        </div>
+                    </a>
+                    <a href="https://academy.binance.com"
+                        class="block p-6 glass-panel hover:bg-white/5 transition-colors">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold">Binance Academy - PoSA Analysis</span>
                             <span class="text-yellow-500 text-xs font-mono">academy.binance.com</span>
                         </div>
                     </a>
-                    <div class="p-6 glass-panel">
-                        <div class="flex justify-between items-center">
-                            <span class="font-bold">Statistiques en Temps Réel</span>
-                            <span class="text-yellow-500 text-xs font-mono">bscscan.com</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- SLIDE 10: CONCLUSION -->
-        <section class="slide items-center text-center">
-            <div class="space-y-12">
-                <h2 class="text-6xl md:text-8xl font-black tracking-tight leading-none">MERCI DE VOTRE <br><span class="text-gradient-gold">ATTENTION</span></h2>
+        <!-- SLIDE 9: CONCLUSION & QUESTIONS -->
+        <section class="slide items-center text-center" id="slide9">
+            <div class="space-y-12 animate-on-visible">
+                <h2 class="text-6xl md:text-8xl font-black tracking-tight leading-none">MERCI DE VOTRE <br><span
+                        class="text-gradient-gold">ATTENTION</span></h2>
                 <div class="flex justify-center space-x-12">
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">?</p>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Questions</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-3xl font-bold text-white">↗</p>
-                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Partage</p>
+                    <div class="text-center group cursor-help">
+                        <p class="text-5xl font-bold text-white mb-2 group-hover:text-yellow-500 transition-colors">?
+                        </p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Des Questions</p>
                     </div>
                 </div>
-                <div class="pt-20">
-                    <p class="text-xs text-gray-700 font-mono">ÉQUIPE : [VOS NOMS] • PROJET BLOCKCHAIN • 2024</p>
+                <div class="pt-24 border-t border-white/5 w-64 mx-auto">
+                    <p class="text-[10px] text-gray-700 font-mono uppercase tracking-widest">Présentation • BNB Chain •
+                        2024</p>
                 </div>
             </div>
         </section>
@@ -394,6 +485,7 @@
     <script>
         let myChart;
 
+        // Initialisation du Graphique (Simulateur)
         function initChart() {
             const ctx = document.getElementById('compChart').getContext('2d');
             myChart = new Chart(ctx, {
@@ -412,8 +504,8 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { 
-                            beginAtZero: true, 
+                        y: {
+                            beginAtZero: true,
                             grid: { color: 'rgba(255,255,255,0.05)' },
                             ticks: { color: 'rgba(255,255,255,0.4)' }
                         },
@@ -424,28 +516,83 @@
             });
         }
 
+        // Mise à jour du Simulateur
         function updateSim() {
             const val = document.getElementById('amtInput').value;
-            document.getElementById('amtDisplay').innerText = new Intl.NumberFormat('en-US').format(val) + ' $';
+            const display = document.getElementById('amtDisplay');
+            if (display) display.innerText = new Intl.NumberFormat('en-US').format(val) + ' $';
 
             const bankCost = 25 + (val * 0.004);
             const bnbCost = 0.08;
 
-            document.getElementById('bankFee').innerText = bankCost.toFixed(2) + ' $';
-            document.getElementById('bnbFee').innerText = bnbCost.toFixed(2) + ' $';
+            const bankFeeEl = document.getElementById('bankFee');
+            const bnbFeeEl = document.getElementById('bnbFee');
 
-            myChart.data.datasets[0].data = [bankCost, bnbCost];
-            myChart.update();
+            if (bankFeeEl) bankFeeEl.innerText = bankCost.toFixed(2) + ' $';
+            if (bnbFeeEl) bnbFeeEl.innerText = bnbCost.toFixed(2) + ' $';
+
+            if (myChart) {
+                myChart.data.datasets[0].data = [bankCost, bnbCost];
+                myChart.update();
+            }
         }
 
-        // Scroll Tracker
+        // Gestionnaire de Scroll & Animations
         const container = document.getElementById('scrollContainer');
-        container.addEventListener('scroll', () => {
-            const scrolled = (container.scrollTop / (container.scrollHeight - container.clientHeight)) * 100;
-            document.getElementById('progressBar').style.width = scrolled + "%";
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.nav-dot');
+        const progressBar = document.getElementById('progressBar');
+
+        const observerOptions = {
+            threshold: 0.6
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Update dots active state
+                    const slideId = Array.from(slides).indexOf(entry.target);
+                    dots.forEach(dot => dot.classList.remove('active'));
+                    if (dots[slideId]) dots[slideId].classList.add('active');
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, observerOptions);
+
+        slides.forEach(slide => observer.observe(slide));
+
+        // Navigation par points
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                const targetSlide = slides[index];
+                if (targetSlide) targetSlide.scrollIntoView({ behavior: 'smooth' });
+            });
         });
 
-        window.onload = initChart;
+        // Tracker de Progression
+        container.addEventListener('scroll', () => {
+            const scrolled = (container.scrollTop / (container.scrollHeight - container.clientHeight)) * 100;
+            if (progressBar) progressBar.style.width = scrolled + "%";
+        });
+
+        // Navigation au clavier
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                if (e.key === ' ') e.preventDefault();
+                container.scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+            }
+            if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                container.scrollBy({ top: -window.innerHeight, behavior: 'smooth' });
+            }
+        });
+
+        window.onload = () => {
+            initChart();
+            setTimeout(() => slides[0].classList.add('active'), 100);
+        };
     </script>
 </body>
+
 </html>
